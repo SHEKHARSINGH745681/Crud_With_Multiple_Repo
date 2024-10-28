@@ -1,11 +1,9 @@
 ﻿using EmployeeAdminPortal.Data;
 using EmployeeAdminPortal.Moddels;
 using EmployeeAdminPortal.Moddels.Entities;
-using EmployeeAdminPortal.Models.Entities;
 using EmployeeAdminPortal.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 
 namespace EmployeeAdminPortal.Controllers
 {
@@ -14,154 +12,126 @@ namespace EmployeeAdminPortal.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
-        private readonly EmployeeRepo employeeRepo; 
-        public EmployeesController(EmployeeRepo employeeRepo)
+        private readonly EmployeeRepo employeeRepo;
+        private readonly DepRepo depRepo;
+        private readonly PositionRepo positionRepo;
+        public EmployeesController(EmployeeRepo employeeRepo, DepRepo depRepo, PositionRepo positionRepo)
         {
             this.employeeRepo = employeeRepo;
+            this.depRepo = depRepo;
+            this.positionRepo = positionRepo;
         }
 
-        //[HttpGet]
-        //public IActionResult GetAllEmployees()
-        //{
-        //    return Ok(dbContext.Employees.ToList());
-        //}
+
+
 
         [HttpGet]
+
         public async Task<IActionResult> GetAllEmployees()
         {
             IEnumerable<Employee> employees = await employeeRepo.GetAllEmployees();
             return Ok(employees);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEmployeeById(int id)
+        {
+            var employee = await employeeRepo.GetEmployeeById(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+            return Ok(employee);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddEmployee(Employee employee)
+        {
+            if (employee == null)
+            {
+                return BadRequest();
+            }
+
+            await employeeRepo.AddEmployee(employee);
+            return Ok(new { message = "Employee created successfully." });
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateEmployee(int id, Employee employee)
+        {
+            if (id != employee.Id)
+            {
+                return BadRequest();
+            }
+
+            var existingEmployee = await employeeRepo.GetEmployeeById(id);
+            if (existingEmployee == null)
+            {
+                return NotFound();
+            }
+
+            await employeeRepo.UpdateEmployee(employee);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteEmployee(int id)
+        {
+            var employee = await employeeRepo.GetEmployeeById(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            await employeeRepo.DeleteEmployee(id);
+            return NoContent();
+        }
 
 
+        [HttpGet]
+        [Route("all")]
+        public async Task<IActionResult> GetAllDepartments()
+        {
+            IEnumerable<Department> departments = await depRepo.GetAllDepartments();
+            return Ok(departments);
+        }
 
+        [HttpPost]
+        [Route("add")]
+        public async Task<IActionResult> AddDepartment(Department department)
+        {
+            if (department == null)
+            {
+                return BadRequest();
+            }
 
+            await depRepo.AddDepartment(department);
+            return Ok(new { message = "Department created successfully." });
+        }
+        [HttpGet]
+        [Route("allposition")]
+        public async Task<IActionResult> GetAllPosition()
+        {
+            IEnumerable<Position> positions = await positionRepo.GetAllPosition();
+            return Ok(positions);
+        }
 
-        //[HttpGet("{id}")]
-        //public IActionResult GetEmployeeById(int id)
-        //{
-        //    var employee = dbContext.Employees.Find(id);
+        [HttpPost]
+        [Route("addposition")]
+        public async Task<IActionResult> AddPosition(Position position)
+        {
+            if (position == null)
+            {
+                return BadRequest();
+            }
 
-        //    if (employee == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(employee);
-        //}
-
-
-
-        ////find by List (employee and department)
-        //[HttpGet("list")] 
-        //public IActionResult GetEmployeeListById()
-        //{
-        //    var employeeList = dbContext.Employees
-        //        .Include(e => e.Department) 
-        //        .ToList();
-
-
-        //    return Ok(employeeList);
-        //}
-
-        //[HttpGet("list/{id}")]
-        //public IActionResult GetEmployeesById(int id)
-        //{
-        //    var employee = dbContext.Employees
-        //        .Include(e => e.Department)
-        //        .FirstOrDefault(e => e.Id == id);
-
-        //    if (employee == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(employee);
-        //}
-
-        ////employee
-
-        //[HttpPost]
-        //public IActionResult AddEmployee(Employee employee)
-        //{
-
-        //    var employeeEntity = new Employee()
-        //    {
-        //        Name = employee.Name,
-        //        Email = employee.Email,
-        //        Phone = employee.Phone,
-        //        Salary = employee.Salary,
-        //        Dep_Id = employee.Dep_Id,
-        //    };
-
-        //    dbContext.Employees.Add(employeeEntity);
-        //    dbContext.SaveChanges();
-
-        //    return Ok(employeeEntity);
-        //}
-
-        ////Department
-        //[HttpPost]
-        //[Route("department")]
-        //public IActionResult AddDepartment(Department department)
-        //{
-            
-        //    var departmentEntity = new Models.Entities.Department() 
-        //    {
-        //        Address = department.Address,
-        //        BloodGroup = department.BloodGroup,
-        //        Position = department.Position,
-        //        Experience = department.Experience,
-        //    };
-
-        //    // Add the new entity to the DbContext
-        //    dbContext.Departments.Add(departmentEntity);
-
-        //    // Save changes to the database
-        //    dbContext.SaveChanges();
-
-        //    // Return the created department entity as a response
-        //    return Ok(new
-        //    {
-        //        Message = "Department created successfully!",
-        //        Department = departmentEntity
-        //    });
-        //}
-
-        //[HttpPut("{id}")]
-        //public IActionResult UpdateEmployee(int id, Employee employee)
-        //{
-        //    var employees = dbContext.Employees.Find(id);
-
-        //    if (employee == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    employee.Name = employee.Name;
-        //    employee.Email = employee.Email;
-        //    employee.Phone = employee.Phone;
-        //    employee.Salary = employee.Salary;
-
-        //    dbContext.SaveChanges();
-
-        //    return Ok(employee);
-
-
-        //}
-
-        //[HttpDelete]
-        //public IActionResult DeleteEmployee(int id)
-        //{
-        //    var employee = dbContext.Employees.Find(id);
-        //    if (employee == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    dbContext.Employees.Remove(employee);
-        //    dbContext.SaveChanges();
-
-        //    return Ok(employee);
-        //}
+            await positionRepo.AddPosition(position);
+            return Ok(new { message = "Position created successfully." });
+        }
     }
 }
+
+
+
+
+

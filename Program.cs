@@ -13,6 +13,8 @@ builder.Services.AddSwaggerGen();
 
 //this way application db context in the main file
 builder.Services.AddScoped<EmployeeRepo, EmployeeImplRepo>();
+builder.Services.AddScoped<DepRepo, DepImplRepo>();
+builder.Services.AddScoped<PositionRepo, PositionImplRepo>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
